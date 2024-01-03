@@ -13,7 +13,7 @@ category_dict = {}
 CWD = os.getcwd()
 BATCH_SIZE = 16
 LR = 0.001
-EPOCHS=8
+EPOCHS=25
 
 train = []
 num = 0
