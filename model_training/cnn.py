@@ -6,11 +6,11 @@ from torch.nn import MaxPool2d
 from torch.nn import ReLU
 from torch.nn import LogSoftmax
 from torch import flatten
+from torch.nn import ParameterList
 
 class CNN(Module):
     
-	def __init__(self, num_filter_list: list[int], kernal_size_list: list[int], stride_list: list[int], padding_list: list[int], drop_list: list[bool], pooling_list: list[int],
-			  linear_layer_outputs: list[int], classes: list[int], input_size: int=48):
+	def __init__(self, num_classes):
 		"""
 		customizable class to create a convolutional neural network using PyTorch. Activation function for each layer is ReLU
 
@@ -25,72 +25,49 @@ class CNN(Module):
 			classes (list[int]): number of classes
 			intput_size (int): input size of image
 		"""
+		super().__init__()
 
-		# assert all elements are of the proper sizes
-		assert len(num_filter_list) == len(kernal_size_list)
-		assert len(kernal_size_list) == len(stride_list)
-		assert len(stride_list) == len(padding_list)
-		assert len(padding_list) == len(drop_list)
-		assert len(drop_list) == len(pooling_list)
 
-		assert linear_layer_outputs[-1] == classes
+		self.conv1 = Conv2d(in_channels=1, out_channels=16, kernel_size=2, stride=1, padding=1)
+		#self.drop1 = Dropout()
+		self.relu1 = ReLU()
 
-		super(CNN, self).__init__()
+		self.conv2 = Conv2d(in_channels=16, out_channels=32, kernel_size=2, stride=1, padding=0)
+		self.relu2 = ReLU()
 
-		self.NUM_CONV_LAYERS = len(num_filter_list)
-		self.NUM_LINEAR_LAYERS = len(linear_layer_outputs)
+		self.pool2 = MaxPool2d(kernel_size=3)
 
-		self.drop_list = drop_list
-		self.pooling_list = pooling_list
+		self.linear3 = Linear(in_features=8192, out_features=1000)
+		self.relu3 = ReLU()
 
-		self.conv_layers= []
-
-		prev_in = input_size
-		for i in range(self.NUM_CONV_LAYERS):
-			curr_layer = Conv2d(in_channels=prev_in, out_channels=num_filter_list[i], kernel_size=kernal_size_list[i],
-						stride=stride_list[i], padding=padding_list[i])
-			prev_in = ((prev_in + 2 * padding_list[i] - kernal_size_list[i]) / (stride_list[i])) + 1
-			prev_in = prev_in / (max(1, ))
-			
-			self.conv_layers.append(curr_layer)
+		self.linear4 = Linear(in_features=1000, out_features=num_classes)
 		
-		prev_in = (prev_in ** 2) * num_filter_list[-1]
-
-		self.linear_layers = []
-		for i in range(self.NUM_LINEAR_LAYERS):
-			curr_layer = Linear(in_features=prev_in, out_features=linear_layer_outputs[i])
-			self.linear_layers.append(curr_layer)
-			prev_in = linear_layer_outputs[i]
+		self.logsoftmax = LogSoftmax()
 
 
 
-
-		self.classes = classes
 
 	def forward(self, x):
-		
-		for i in range(self.NUM_CONV_LAYERS):
-			conv_layer, dropout_true, pooling_value= self.conv_layers, self.drop_list[i], self.pooling_list[i]
 
-			x = conv_layer(x)
-			x = ReLU()(x)
-			if dropout_true:
-				x = Dropout(p=0.5)(x)
-			x = MaxPool2d(pooling_value)
-		
-		# flatten after all convolution layers 
-		x = flatten(x)
+		x = self.conv1(x)
+		#x = self.drop1(x)
+		x = self.relu1(x)
 
-		for i in range(self.NUM_LINEAR_LAYERS - 1):
-			linear_layer = self.linear_layers[i]
-			x = linear_layer(x)
-			x = ReLU()(x)
 
-		# perform log softmax on the last layer
-		x = self.linear_layers[-1](x)
-		output = LogSoftmax()(x)
+		x = self.conv2(x)
+		x = self.relu2(x)
+		x = self.pool2(x)
+
+		x = flatten(x, 1)
+
+		x = self.linear3(x)
+		x = self.relu3(x)
+
+		x = self.linear4(x)
 		
-		return output
+		out = self.logsoftmax(x)
+		
+		return out
 
 
 				

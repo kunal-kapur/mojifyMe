@@ -14,18 +14,26 @@ import random
 
 class Train:
 
-    def __init__(self, train_data: list, batch_size:int=5, epochs: int=4):
+    def __init__(self, train_data: list, batch_size:int=5, epochs: int=4, lr:int=0.01):
 
         random.shuffle(train_data)
+
+        train_data = train_data[0:2000]
+
         VAL_BOUNDRY = len(train_data) // 5
         self.train_data = DataLoader(train_data[VAL_BOUNDRY:], batch_size=batch_size)
         self.validation_data = DataLoader(train_data[0:VAL_BOUNDRY], batch_size=1)
 
         self.batch_size = batch_size
         self.epochs = epochs
-        self. device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.lr = lr
 
-    def train_model(self, name: str, model, opt, lossFn):
+    def train_model(self, name: str, model):
+
+        opt = Adam(params=model.parameters(), lr=self.lr) # method to perform gradient descent
+        lossFn = NLLLoss() # use negative log-likelihood as the loss function
+
         train_loss_list = []
         validation_loss_list = []
         epoch_list = np.arange(self.epochs)
@@ -45,7 +53,7 @@ class Train:
 
                 pred = model(x)
 
-                loss = lossFn(pred, y) # negative log likelihood loss will penalize exponentially for lower probabilities on the right category
+                loss = (lossFn(pred, y)) # negative log likelihood loss will penalize exponentially for lower probabilities on the right category
                 opt.zero_grad()
                 loss.backward()
                 opt.step()
@@ -56,7 +64,7 @@ class Train:
                     torch_float).sum().item()
 
             # append total loss to train_loss_list     
-            train_loss_list[epoch] = train_loss
+            train_loss_list.append(train_loss.item())
 
             print("Checking validation loss")
 
@@ -67,27 +75,28 @@ class Train:
                     x, y = x.to(self.device), y.to(self.device)
 
                     pred = model(x)
-                    val_loss += float(lossFn(pred, y))
+                    val_loss += (lossFn(pred, y))
                     val_correct += (torch.argmax(pred, 1) == y).type(
                     torch_float).sum().item()
 
                 #append total loss to validation_loss_list
-                validation_loss_list[epoch] = (val_loss)
-
+                validation_loss_list.append(val_loss.item())
 
             print(f"Epoch: {epoch} --- train loss: {train_loss} --- train correct: {train_correct} / {len(self.train_data) * self.batch_size}\n")
             print(f"Epoch: {epoch} --- validation loss: {val_loss} --- validation correct: {val_correct} / {len(self.validation_data)}\n")
 
-            plt.plot(epoch_list, train_loss_list, label = "training loss")
-            plt.plot(epoch_list, validation_loss_list, label = "validation loss")
-            plt.title(f"{name} validation and training error")
-            plt.xlabel("Epoch")
-            plt.ylabel("loss")
-            plt.savefig(f"training_plots/training_{name}.png")
-        
-            print("Completed training\n-------------------------------")
 
-        return validation_loss_list[-1]
+        plt.plot(epoch_list, train_loss_list, label = "training loss")
+        plt.plot(epoch_list, validation_loss_list, label = "validation loss")
+        plt.title(f"{name} validation and training error")
+        plt.xlabel("Epoch")
+        plt.ylabel("loss")
+        plt.savefig(f"training_{name}.png")
+        
+        print("Completed training\n-------------------------------")
+
+        # return the tuple of the optimizer, the loss function, and final validation loss
+        return (opt, lossFn, validation_loss_list[-1])
 
 # test_loss = 0
 # test_correct = 0
