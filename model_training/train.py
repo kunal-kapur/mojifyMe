@@ -18,7 +18,7 @@ class Train:
 
         random.shuffle(train_data)
 
-        train_data = train_data[0:2000]
+        #train_data = train_data[0:2500]
 
         VAL_BOUNDRY = len(train_data) // 5
         self.train_data = DataLoader(train_data[VAL_BOUNDRY:], batch_size=batch_size)
@@ -36,7 +36,7 @@ class Train:
 
         train_loss_list = []
         validation_loss_list = []
-        epoch_list = np.arange(self.epochs)
+        
         print(f"Beginning training: {name}\n-------------------------------")
 
         for epoch in range(self.epochs):
@@ -82,10 +82,17 @@ class Train:
                 #append total loss to validation_loss_list
                 validation_loss_list.append(val_loss.item())
 
+
             print(f"Epoch: {epoch} --- train loss: {train_loss} --- train correct: {train_correct} / {len(self.train_data) * self.batch_size}\n")
             print(f"Epoch: {epoch} --- validation loss: {val_loss} --- validation correct: {val_correct} / {len(self.validation_data)}\n")
 
+            # point of diminishing returns
+            if len(train_loss_list) > 6 and abs(train_loss_list[-1] - train_loss_list[-2]) < 1 and abs(train_loss_list[-2] - train_loss_list[-3]) < 1:
+                print("Training loss decrease <1....Stopping training")
+                break
 
+
+        epoch_list = np.arange(len(train_loss_list))
         plt.plot(epoch_list, train_loss_list, label = "training loss")
         plt.plot(epoch_list, validation_loss_list, label = "validation loss")
         plt.title(f"{name} validation and training error")

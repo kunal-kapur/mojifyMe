@@ -13,7 +13,7 @@ category_dict = {}
 CWD = os.getcwd()
 BATCH_SIZE = 16
 LR = 0.001
-EPOCHS=25
+EPOCHS=15
 
 train = []
 num = 0
@@ -24,6 +24,8 @@ pil_to_tensor = ToTensor()
 print("Loading test and training images...........")
 for root, dirs, files in os.walk(f"{CWD}/model_training/archive/train"):
     for dir in dirs:
+        if dir not in ["happy", "sad"]:
+            continue
         path = f"{root}/{dir}"
         for file in os.listdir(path):
             img = Image.open(f"{path}/{file}")
@@ -39,6 +41,8 @@ inv_map = {v: k for k, v in category_dict.items()}
 test = []   
 for root, dirs, files in os.walk(f"{CWD}/model_training/archive/test"):
     for dir in dirs:
+        if dir not in ["happy", "sad"]:
+            continue
         path = f"{root}/{dir}"
         for file in os.listdir(path):
             img = Image.open(f"{path}/{file}")
