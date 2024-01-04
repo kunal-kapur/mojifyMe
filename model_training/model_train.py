@@ -1,10 +1,14 @@
 import os
 from PIL import Image
 import random
+import torch
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader
 from train import Train
 from cnn import CNN
+from tqdm import tqdm
+from torch import float as torch_float
+
 
 
 category_dict = {}
@@ -54,12 +58,35 @@ random.shuffle(test)
 train_instance = Train(train_data=train, batch_size=BATCH_SIZE, epochs=EPOCHS, lr=LR)
 
 
-model1 = CNN(num_classes=len(category_dict))
+model = CNN(num_classes=len(category_dict))
 
-train_instance.train_model(name="model1", model=model1)
+opt, lossFn, validation_loss = train_instance.train_model(name="model1", model=model)
 
 #We load the test data separately
 test_load = DataLoader(test, batch_size=1)
+
+test_loss = 0
+test_correct = 0
+
+print("Beginning Testing\n--------------------------------------\n")
+with torch.no_grad():
+    model.eval()
+    for x, y in tqdm(test_load):
+        pred = model(x)
+        loss = lossFn(pred, y)
+        test_loss += loss
+        test_correct += (torch.argmax(pred, 1) == y).type(
+			torch_float).sum().item()
+        
+    print(f"Testing --- test loss: {test_loss} --- test correct: {test_correct}\n")
+    print(f"Accuracy: {test_correct}/{len(test)}\n{test_correct / len(test)}%")
+
+
+torch.save(model.state_dict(), f"{os.getcwd()}/model.pt")
+
+
+
+
 
 
 
