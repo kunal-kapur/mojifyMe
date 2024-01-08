@@ -1,0 +1,12 @@
+<!doctype html>
+
+<title>Result</title>
+
+
+{% if icon %}
+
+<h1>Hello &#{{icon}}; ! </h1>
+
+{% endif %}
+
+<button onclick="{{url_for(app.index)}}" method=get>ok</button>

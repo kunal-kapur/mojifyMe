@@ -32,8 +32,9 @@ for root, dirs, files in os.walk(f"{CWD}/model_training/archive/train"):
             continue
         path = f"{root}/{dir}"
         for file in os.listdir(path):
-            img = Image.open(f"{path}/{file}")
-            train.append((pil_to_tensor(img), num))
+            with Image.open(f"{path}/{file}") as img:
+                train.append((pil_to_tensor(img), num))
+
         
         # increment the counter for the 
         category_dict[num] = dir
@@ -49,8 +50,9 @@ for root, dirs, files in os.walk(f"{CWD}/model_training/archive/test"):
             continue
         path = f"{root}/{dir}"
         for file in os.listdir(path):
-            img = Image.open(f"{path}/{file}")
-            test.append((pil_to_tensor(img), inv_map[dir]))
+            with Image.open(f"{path}/{file}") as img:
+                test.append((pil_to_tensor(img), inv_map[dir]))
+
 print("Done")
 
 random.shuffle(test)
@@ -82,7 +84,7 @@ with torch.no_grad():
     print(f"Accuracy: {test_correct}/{len(test)}\n{test_correct / len(test)}%")
 
 
-torch.save(model.state_dict(), f"{os.getcwd()}/model.pt")
+#torch.save(model.state_dict(), f"{os.getcwd()}/model.pt")
 
 
 

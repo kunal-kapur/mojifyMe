@@ -50,13 +50,12 @@ class CNN(Module):
 
 
 	def forward(self, x):
-		#print(x.size())
+		print(x.size())
 		x = self.conv1(x)
 		x = self.drop1(x)
 		x = self.relu1(x)
 		x = self.pool1(x)
 
-		#print(x.size())
 		x = self.conv2(x)
 		# x = self.drop2(x)
 		x = self.relu2(x)

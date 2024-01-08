@@ -105,31 +105,6 @@ class Train:
         # return the tuple of the optimizer, the loss function, and final validation loss
         return (opt, lossFn, validation_loss_list[-1])
 
-# test_loss = 0
-# test_correct = 0
-
-# print("Beginning Testing\n-------------------------------")
-# with torch.no_grad():
-#     model.eval()
-#     for x, y in tqdm(test_load):
-#         pred = model(x)
-#         loss = lossFn(pred, y)
-#         test_loss += loss
-#         test_correct += (torch.argmax(pred, 1) == y).type(
-# 			torch_float).sum().item()
-        
-#     print(f"Testing --- test loss: {test_loss} --- test correct: {test_correct}\n")
-#     print(f"Accuracy: {test_correct}/{len(test)}\n{test_correct / len(test)}%")
-
-
-    
-
-# model = CNN(filter_size1=4, filter_size2=4, pooling2=3, flattened_data_in=1568, 
-#             flattened_data_out=800, classes=len(class_dict))
-# opt = Adam(params=model.parameters(), lr=LR) # method to perform gradient descent
-
-# lossFn = NLLLoss() # use negative log-likelihood as the loss function
-
 
 
     

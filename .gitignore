@@ -2,3 +2,4 @@
 model_training/archive
 .DS_store
 model.pt
+upload_folder
